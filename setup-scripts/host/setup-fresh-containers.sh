@@ -7,4 +7,6 @@ SCRIPT_DIR="/home/chris/setup-scripts"
 $SCRIPT_DIR/git/create-container.sh
 $SCRIPT_DIR/paperless/create-container.sh
 $SCRIPT_DIR/nas/create-container.sh
+$SCRIPT_DIR/torrent/create-container.sh
+$SCRIPT_DIR/jellyfin/create-container.sh
 

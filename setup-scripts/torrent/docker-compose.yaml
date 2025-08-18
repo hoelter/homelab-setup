@@ -1,0 +1,88 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    env_file: .env
+    volumes:
+      - /home/torrentuser/config/gluetun:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - FIREWALL_VPN_INPUT_PORTS=8080
+      - FIREWALL_INPUT_PORTS=8080
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_PROVIDER=protonvpn
+      - HEALTH_VPN_DURATION_INITIAL=30s
+      - HEALTH_VPN_DURATION_ADDITION=5s
+      - UPDATER_PERIOD=24h
+      - LOG_LEVEL=info
+    ports:
+      - "8080:8080"  # qBittorrent Web UI
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Chicago
+      - WEBUI_PORT=8080
+    volumes:
+      - /home/torrentuser/config/qbittorrent:/config
+      - /srv/torrents:/downloads
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.depends-on=gluetun"
+
+  # Port forwarding manager - updates qBittorrent with forwarded port
+  port-updater:
+    image: alpine:latest
+    container_name: port-updater
+    volumes:
+      - /home/torrentuser/config/gluetun:/gluetun:ro
+      - /home/torrentuser/config/qbittorrent:/qbittorrent
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+      - qbittorrent
+    restart: unless-stopped
+    command: |
+      sh -c '
+        apk add --no-cache curl jq
+        while true; do
+          sleep 60
+          if [ -f /gluetun/forwarded_port ]; then
+            PORT=$$(cat /gluetun/forwarded_port)
+            echo "Detected forwarded port: $$PORT"
+            
+            # Wait for qBittorrent to be ready
+            until curl -s http://localhost:8080 > /dev/null; do
+              echo "Waiting for qBittorrent..."
+              sleep 10
+            done
+            
+            # Get session cookie
+            COOKIE=$$(curl -s -c - -b - --header "Referer: http://localhost:8080" --data "username=admin&password=adminadmin" http://localhost:8080/api/v2/auth/login | grep SID | cut -f7)
+            
+            if [ ! -z "$$COOKIE" ]; then
+              # Update listening port
+              curl -s -b "SID=$$COOKIE" --header "Referer: http://localhost:8080" --data "json={\"listen_port\":$$PORT}" http://localhost:8080/api/v2/app/setPreferences
+              echo "Updated qBittorrent port to $$PORT"
+            fi
+          fi
+          sleep 300  # Check every 5 minutes
+        done
+      '
+
