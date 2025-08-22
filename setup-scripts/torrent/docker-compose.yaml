@@ -1,0 +1,92 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:v3.39.1
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    env_file: .env
+    volumes:
+      - /home/torrentuser/config/gluetun:/tmp/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - VPN_PORT_FORWARDING_PROVIDER=protonvpn
+      - VPN_PORT_FORWARDING=on
+      - FIREWALL_VPN_INPUT_PORTS=8080
+      - FIREWALL_INPUT_PORTS=8080
+      - FIREWALL_OUTBOUND_SUBNETS=${DOCKER_SUBNET},${LOCAL_SUBNET}
+      - VPN_PORT_FORWARDING_STATUS_FILE=/tmp/gluetun/forwarded_port
+      - HEALTH_VPN_DURATION_INITIAL=30s
+      - HEALTH_VPN_DURATION_ADDITION=5s
+      - UPDATER_PERIOD=24h
+      - LOG_LEVEL=debug
+      - FIREWALL_DEBUG=on
+      - VPN_PORT_FORWARDING_DEBUG=on
+      - TZ=America/Chicago
+    ports:
+      - 8080:8080      # QB Web UI
+      # - 6881:6881      # QB
+      # - 6881:6881/udp  # QB
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "ping -c 1 1.1.1.1 > /dev/null 2>&1 && test -f /tmp/gluetun/forwarded_port"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Chicago
+      - WEBUI_PORT=8080
+      # Enhanced logging for debugging
+      - QBITTORRENT_ADDITIONAL_ARGS=--verbose
+    volumes:
+      - /home/torrentuser/config/qbittorrent:/config
+      - /srv/torrents:/downloads
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  port-manager:
+    image: patrickaclark/gluetun-qbittorrent-port-manager:latest
+    container_name: gluetun-qbittorrent-port-manager
+    environment:
+      - QBITTORRENT_SERVER=localhost
+      - QBITTORRENT_PORT=8080
+      - HTTP_S=http
+      - GLUETUN_HOST=localhost
+      - GLUETUN_PORT=8000
+      - RECHECK_TIME=60
+      - TZ=America/Chicago
+      - PORT_FORWARDED=/tmp/gluetun/forwarded_port
+      # Enhanced logging for debugging
+      - LOG_LEVEL=DEBUG
+      - VERBOSE=true
+    network_mode: "service:gluetun"
+    restart: unless-stopped
+    volumes:
+      - /home/torrentuser/config/gluetun:/tmp/gluetun
+    depends_on:
+      gluetun:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://1.1.1.1/", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+

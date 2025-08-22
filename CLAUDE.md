@@ -7,14 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a homelab infrastructure setup repository that automates the deployment and configuration of services using Incus containers. The architecture follows a layered approach:
 
 - **Host Layer**: Scripts that configure the physical host with Incus, backup systems, and base services
-- **Container Layer**: Individual service containers (Git, NAS, Paperless) with isolated storage volumes
+- **Container Layer**: Individual service containers (Git, NAS, Paperless, Jellyfin, Torrent) with isolated storage volumes
 - **Service Layer**: Application-specific configurations and Docker Compose deployments
 
 ### Directory Structure
 
 - `setup-scripts/host/`: Host-level configuration scripts for the physical server
 - `setup-scripts/common/`: Shared utilities (Docker, Tailscale installation)
-- `setup-scripts/{service}/`: Service-specific container setup (git, nas, paperless)
+- `setup-scripts/{service}/`: Service-specific container setup (git, nas, paperless, jellyfin, torrent)
 - Root-level scripts: Deployment and testing orchestration
 
 ### Container Pattern
@@ -29,7 +29,7 @@ Each service follows a consistent pattern:
 ### Deployment Commands
 - `./deploy-host-setup.sh` - Deploy all setup scripts to production host via SSH (uses "incus-host" alias)
 - `./setup-host-test-env.sh` - Create test VM environment for development (uses "real-incus-host" alias)
-- `setup-scripts/host/setup-fresh-containers.sh` - Deploy all service containers (git, paperless, nas)
+- `setup-scripts/host/setup-fresh-containers.sh` - Deploy all service containers (git, paperless, nas, torrent, jellyfin)
 - `setup-scripts/host/configure.sh` - Initial host setup (installs incus, restic, configures environment)
 
 ### Service Management
@@ -55,6 +55,7 @@ Each service follows a consistent pattern:
 ### Service-Specific Commands
 - `setup-scripts/paperless/export-files.sh` - Export Paperless data from container
 - `setup-scripts/paperless/import-files.sh` - Import Paperless data to container
+- `setup-scripts/paperless/update-paperless.sh` - Update Paperless container and services
 - `setup-scripts/git/init-git-repo.sh` - Initialize new git repository on git container
 
 ## Development Workflow
@@ -73,7 +74,7 @@ Each service follows a consistent pattern:
 ### Network Configuration
 - Containers use macvlan network (homebr0) for direct network access
 - SSH access via authorized keys, not passwords
-- Services expose ports directly to network (e.g., Paperless on port 8000)
+- Services expose ports directly to network (e.g., Paperless on port 8000, Jellyfin on port 8096, qBittorrent on port 8080)
 - Test environment uses parent interface `enp1s0` for macvlan bridge
 
 ## Important Configuration Details
@@ -84,10 +85,12 @@ Each service follows a consistent pattern:
 - Volume snapshots configured with same schedule as containers (daily 7 AM, 30-day retention)
 - Git repositories stored in `/srv/git-repos` volume
 - NAS files stored on custom incus volume with samba sharing
+- Jellyfin config stored in dedicated `jellyfin-config` volume
+- Torrent downloads stored at `/srv/torrents` (external to Incus, not backed up)
 
 ### Container Configuration
 - All containers use Debian 13 base image (`images:debian/13`)
-- Paperless container requires security nesting and syscall interception for Docker Compose
+- Paperless and Torrent containers require security nesting and syscall interception for Docker Compose
 - All containers run with non-root user mapping (UID 1000)
 - SSH key-only authentication enforced across all services
 
@@ -101,10 +104,26 @@ Each service follows a consistent pattern:
 - **Paperless**: Uses Docker Compose with PostgreSQL, Redis, Gotenberg, and Tika services
 - **Git**: Custom git shell with repository creation commands, locked-down SSH access
 - **NAS**: Samba file sharing with macOS-optimized configuration
+- **Jellyfin**: Media server with direct Jellyfin installation, accesses torrent media read-only
+- **Torrent**: qBittorrent with Gluetun VPN (ProtonVPN WireGuard) and automatic port forwarding
 - All services configured with automatic snapshots and backup integration
+
+### Torrent Security Configuration
+- **VPN Killswitch**: All torrent traffic routed through ProtonVPN WireGuard with killswitch
+- **Traffic Isolation**: qBittorrent has no direct network access, only through Gluetun VPN container
+- **DNS Protection**: All DNS requests go through VPN to prevent leaks
+- **Automatic Port Forwarding**: Gluetun requests ports from ProtonVPN and updates qBittorrent
+- **External Storage**: Downloads stored outside Incus directory structure (not backed up)
+- **VPN Config**: Requires ProtonVPN WireGuard config at `/srv/torrents/config/protonvpn.conf`
+
+### Media Integration
+- **Jellyfin-Torrent**: Jellyfin container mounts `/srv/torrents` as read-only `/media`
+- **Shared Storage**: Media files downloaded by torrent container are immediately available to Jellyfin
+- **Security**: Jellyfin has read-only access to prevent accidental modification of downloads
 
 ### Backup Strategy
 - Restic used for encrypted remote backups to S3-compatible storage
 - Environment variables stored in `/root/.restic_env`
 - Multiple backup verification scripts (weekly/monthly)
 - Entire incus storage volume backed up, ensuring complete system recovery capability
+- **Note**: `/srv/torrents` intentionally excluded from backups (external storage for large media files)
