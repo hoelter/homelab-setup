@@ -22,3 +22,7 @@ access from macos clients. All files are stored on a custom incus volume that wi
 
 This is a container meant to be used as a remote git repository. It's locked down to run git commands and has a custom git-shell-command to create new empty repositories.
 All repositories are stored on a custom incus volume that will survive container re-creation.
+
+## Torrent
+
+This runs qbittorrent in docker compose. It's setup to funnel network traffic through gluetun which manages the vpn connection and acts as a killswitch if the vpn goes down.
