@@ -60,20 +60,11 @@ services:
       start_period: 30s
 
   port-manager:
-    image: patrickaclark/gluetun-qbittorrent-port-manager:latest
-    container_name: gluetun-qbittorrent-port-manager
+    image: alpine:3.20
+    container_name: port-manager
     environment:
-      - QBITTORRENT_SERVER=localhost
-      - QBITTORRENT_PORT=8080
-      - HTTP_S=http
-      - GLUETUN_HOST=localhost
-      - GLUETUN_PORT=8000
+      - PORT_FORWARDED_FILE=/tmp/gluetun/forwarded_port
       - RECHECK_TIME=60
-      - TZ=America/Chicago
-      - PORT_FORWARDED=/tmp/gluetun/forwarded_port
-      # Enhanced logging for debugging
-      - LOG_LEVEL=DEBUG
-      - VERBOSE=true
     network_mode: "service:gluetun"
     restart: unless-stopped
     volumes:
@@ -83,8 +74,35 @@ services:
         condition: service_healthy
       qbittorrent:
         condition: service_healthy
+    command: |
+      sh -c '
+      apk add --no-cache curl
+      echo "Starting qBittorrent port manager"
+      while ! curl -s -c /tmp/cookies -d "username=admin&password=adminadmin" http://localhost:8080/api/v2/auth/login | grep -q "Ok."; do
+          echo "Authentication failed, retrying in 30s..."
+          sleep 30
+      done
+      echo "Authenticated with qBittorrent"
+      
+      while true; do
+          if [ -f "$$PORT_FORWARDED_FILE" ]; then
+              new_port=$$(cat "$$PORT_FORWARDED_FILE" | tr -d "\n\r" | grep -o "[0-9]*")
+              if [ -n "$$new_port" ] && [ "$$new_port" -gt 0 ]; then
+                  current_port=$$(curl -s -b /tmp/cookies http://localhost:8080/api/v2/app/preferences | grep -o "\"listen_port\":[0-9]*" | cut -d: -f2)
+                  if [ "$$current_port" != "$$new_port" ]; then
+                      echo "Updating port: $$current_port -> $$new_port"
+                      curl -s -b /tmp/cookies -d "json={\"listen_port\":$$new_port}" http://localhost:8080/api/v2/app/setPreferences
+                  fi
+              fi
+          fi
+          sleep "$$RECHECK_TIME"
+          curl -s -b /tmp/cookies http://localhost:8080/api/v2/auth/login >/dev/null 2>&1 || {
+              curl -s -c /tmp/cookies -d "username=admin&password=adminadmin" http://localhost:8080/api/v2/auth/login >/dev/null 2>&1
+          }
+      done
+      '
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://1.1.1.1/", "||", "exit", "1"]
+      test: ["CMD", "sh", "-c", "pgrep -f 'Starting qBittorrent port manager' > /dev/null"]
       interval: 30s
       timeout: 10s
       retries: 3

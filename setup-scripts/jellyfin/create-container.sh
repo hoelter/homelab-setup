@@ -20,10 +20,10 @@ echo "Mounting jellyfin config volume..."
 incus config device add $CONTAINER_NAME jellyfin-config disk \
     pool=default source=jellyfin-config path=/var/lib/jellyfin
 
-# Mount the shared torrents volume for media access (read-only for safety)
-echo "Mounting shared media volume from torrent container..."
+# Mount the shared torrents directory for media access (read-only for safety)
+echo "Mounting shared media directory via bind mount..."
 incus config device add $CONTAINER_NAME media-disk disk \
-    pool=external-storage source=torrent-downloads path=/media readonly=true
+    source=/srv/torrents path=/media readonly=true
 
 # Copy setup files to container
 echo "Copying setup files to container..."
@@ -60,3 +60,9 @@ echo "2. Media files are accessible at /media (read-only from torrent-downloads 
 echo "3. Complete setup through the web interface"
 echo ""
 echo "Security note: Media directory is mounted read-only for safety."
+
+# Add a gpu, varies based on machine
+# Run commands on host to identify the necessary args
+    # incus info --resources | grep "GPU:" -A 5
+    # getent group video
+# incus config device add jellyfin intel-gpu gpu pci=0000:00:02.0 gid=44 gputype=physical

@@ -42,14 +42,9 @@ chown torrentuser:torrentuser /home/torrentuser/docker-compose.yaml
 # Create required directories in persistent volume
 mkdir -p /home/torrentuser/config/qbittorrent
 mkdir -p /home/torrentuser/config/gluetun
-mkdir -p /downloads
 
 # Set ownership to torrentuser (UID 1000)
 chown -R torrentuser:torrentuser /home/torrentuser/config
-
-# Set proper permissions for torrents directory (fix for write access)
-chown torrentuser:torrentuser /srv/torrents
-chmod 755 /srv/torrents
 
 echo "Creating .env file for Docker Compose..."
 
