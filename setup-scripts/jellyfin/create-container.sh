@@ -23,7 +23,7 @@ incus config device add $CONTAINER_NAME jellyfin-config disk \
 # Mount the shared torrents directory for media access (read-only for safety)
 echo "Mounting shared media directory via bind mount..."
 incus config device add $CONTAINER_NAME media-disk disk \
-    source=/srv/torrents path=/media readonly=true
+    source=/srv/torrents/media path=/media readonly=true
 
 # Copy setup files to container
 echo "Copying setup files to container..."
