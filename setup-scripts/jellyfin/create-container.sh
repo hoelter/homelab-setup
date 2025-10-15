@@ -23,7 +23,11 @@ incus config device add $CONTAINER_NAME jellyfin-config disk \
 # Mount the shared torrents directory for media access (read-only for safety)
 echo "Mounting shared media directory via bind mount..."
 incus config device add $CONTAINER_NAME media-disk disk \
-    source=/srv/torrents/media path=/media readonly=true
+    source=/mnt/extension-drive/torrents path=/media readonly=true
+
+echo "Mount /tmp as transcode directory so they're stored in ram, in jellfyin admin set transcode path to /tmp/jellyfin-transcodes"
+incus config device add $CONTAINER_NAME transcoding-tmpfs disk \
+    source=/tmp path=/tmp/jellyfin-transcodes
 
 # Copy setup files to container
 echo "Copying setup files to container..."
@@ -66,3 +70,4 @@ echo "Security note: Media directory is mounted read-only for safety."
     # incus info --resources | grep "GPU:" -A 5
     # getent group video
 # incus config device add jellyfin intel-gpu gpu pci=0000:00:02.0 gid=44 gputype=physical
+

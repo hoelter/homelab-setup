@@ -10,14 +10,14 @@ echo "Starting Torrent incus container setup..."
 echo "Creating torrent config volume..."
 incus storage volume create default $TORRENT_CONFIG_VOLUME_NAME 2>/dev/null || true
 
-# Create host directory for direct bind mount
-echo "Creating host directory for torrent downloads..."
-sudo mkdir -p /srv/torrents
+# # Create host directory for direct bind mount
+# echo "Creating host directory for torrent downloads..."
+# sudo mkdir -p /srv/torrents
 
-# Set up permissions on host - world readable, owner writable
-echo "Setting up media access permissions on host..."
-sudo chown 1000:1000 /srv/torrents  # UID 1000 (torrentuser)
-sudo chmod 755 /srv/torrents        # Owner: read/write/execute, Others: read/execute
+# # Set up permissions on host - world readable, owner writable
+# echo "Setting up media access permissions on host..."
+# sudo chown 1000:1000 /srv/torrents  # UID 1000 (torrentuser)
+# sudo chmod 755 /srv/torrents        # Owner: read/write/execute, Others: read/execute
 
 # Launch the incus container with security isolation and ID mapping
 echo "Launching incus container: $CONTAINER_NAME"
@@ -32,8 +32,10 @@ incus config device add $CONTAINER_NAME $TORRENT_CONFIG_VOLUME_NAME disk \
     pool=default source=$TORRENT_CONFIG_VOLUME_NAME path=/home/torrentuser/config
 
 echo "Mounting torrent downloads directory via bind mount..."
-incus config device add $CONTAINER_NAME torrents-downloads disk \
-    source=/srv/torrents path=/srv/torrents shift=true
+# incus config device add $CONTAINER_NAME torrent-downloads disk \
+#     source=/srv/torrents path=/srv/torrents shift=true
+incus config device add $CONTAINER_NAME torrent-downloads disk \
+    source=/mnt/extension-drive/torrents path=/srv/torrents shift=true
 
 # Copy setup files to container
 echo "Copying setup files to container..."
