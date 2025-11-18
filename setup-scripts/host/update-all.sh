@@ -2,6 +2,9 @@
 
 set -e
 
+echo "Starting host udpates..."
+sudo apt update && sudo apt full-upgrade -y
+
 echo "Starting container udpates..."
 incus exec git -- sh -c "apt update && apt full-upgrade -y"
 incus exec nas -- sh -c "apt update && apt full-upgrade -y"
