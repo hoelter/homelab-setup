@@ -24,13 +24,11 @@ restic backup $BACKUP_PATHS \
     --ignore-inode --ignore-ctime \
     --compression max
 
-# Cleanup old snapshots
+# Forget old snapshots
 restic forget \
     --keep-daily 7 \
     --keep-weekly 4 \
-    --keep-monthly 12 \
-    --prune \
-    --cleanup-cache
+    --keep-monthly 12
 
 sudo systemctl start incus.socket incus.service
 
