@@ -15,7 +15,7 @@ echo "2. Download any server configuration file"
 echo "3. Copy the value after 'PrivateKey=' (without quotes)"
 echo ""
 
-read -s -p "Private Key: " private_key
+read -r -s -p "Private Key: " private_key
 echo ""
 
 # Validate that we received a private key

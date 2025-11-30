@@ -2,6 +2,7 @@
 
 set -e
 
+# shellcheck source=/dev/null
 source /root/source-restic-env.sh
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Performing monthly data verification..."

@@ -6,7 +6,7 @@ echo "Starting Paperless container configuration..."
 
 # Prompt for PAPERLESS_URL
 echo -n "Enter the Paperless URL (e.g., https://paperless.your-domain.com): "
-read PAPERLESS_URL
+read -r PAPERLESS_URL
 
 # Validate URL is not empty
 if [ -z "$PAPERLESS_URL" ]; then

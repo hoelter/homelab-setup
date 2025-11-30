@@ -2,6 +2,7 @@
 
 set -e
 
+# shellcheck source=/dev/null
 source /root/source-restic-env.sh
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Performing weekly forgetting prune"
@@ -9,7 +10,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Performing weekly forgetting prune"
 restic forget \
     --keep-daily 7 \
     --keep-weekly 4 \
-    --keep-monthly 12
+    --keep-monthly 12 \
     --prune
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Weekly forgetting complete"

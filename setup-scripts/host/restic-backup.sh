@@ -4,6 +4,7 @@ set -e
 
 systemctl stop incus.service incus.socket
 
+# shellcheck source=/dev/null
 source /root/source-restic-env.sh
 
 # Paths to backup
@@ -15,7 +16,7 @@ HOSTNAME=$(hostname)
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting restic backup..."
 
 # Create backup
-restic backup $BACKUP_PATHS \
+restic backup "$BACKUP_PATHS" \
     --tag "auto-backup" \
     --tag "$TIMESTAMP" \
     --host "$HOSTNAME" \

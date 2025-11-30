@@ -9,6 +9,7 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting restic restore..."
 rm -rf /var/lib/incus
 rm -f /etc/subuid /etc/subgid 2>/dev/null || true
 
+# shellcheck source=/dev/null
 source /root/source-restic-env.sh
 
 restic restore latest --target / --include /var/lib/incus --include /etc/subuid --include /etc/subgid

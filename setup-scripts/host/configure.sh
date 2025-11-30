@@ -11,7 +11,7 @@ echo "Installing dependencies..."
 sudo apt install -y openssh-server incus restic cron
 
 echo "Adding user to incus-admin group"
-sudo adduser $USER incus-admin 2>/dev/null
+sudo adduser "$USER" incus-admin 2>/dev/null
 
 if incus info >/dev/null 2>&1; then
     echo "Incus is already initialized"
@@ -36,10 +36,10 @@ if ! sudo test -f /root/.restic_env; then
     echo -n "$env_content" | sudo install -m 600 -o root -g root /dev/stdin /root/.restic_env
 fi
 
-sudo install -m 600 -o root -g root $SCRIPT_DIR/source-restic-env.sh /root/source-restic-env.sh
+sudo install -m 600 -o root -g root "$SCRIPT_DIR"/source-restic-env.sh /root/source-restic-env.sh
 
 echo "Initializing restic"
-sudo $SCRIPT_DIR/init-restic.sh
+sudo "$SCRIPT_DIR"/init-restic.sh
 
 # Edit the /etc/ssh/sshd_config file and enable key only access
 # Run the tailscale install manually if desired

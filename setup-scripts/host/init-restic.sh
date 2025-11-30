@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+
+# shellcheck source=/dev/null
 source /home/chris/setup-scripts/host/source-restic-env.sh
 
 echo "Initializing restic repository..."

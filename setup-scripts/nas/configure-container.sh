@@ -28,9 +28,9 @@ useradd -u 1000 -m -G sambashare -s /bin/bash $SAMBA_USER
 useradd -u 1001 -m -G sambashare -s /bin/bash $PRIV_USER
 
 echo "Please enter the SMB password for user $PRIV_USER:"
-read -s SMB_PASSWORD
+read -r -s SMB_PASSWORD
 echo "Please confirm the SMB password:"
-read -s SMB_PASSWORD_CONFIRM
+read -r -s SMB_PASSWORD_CONFIRM
 
 if [ "$SMB_PASSWORD" != "$SMB_PASSWORD_CONFIRM" ]; then
     echo "Passwords do not match. Exiting."
