@@ -39,12 +39,9 @@ echo "Setting up container environment..."
 sleep 5
 incus exec $CONTAINER_NAME -- bash /opt/setup/configure-container.sh
 
-echo "Creating macvlan network"
-incus network create homebr0 --type=macvlan parent=enp1s0 2>/dev/null || true
-
 sleep 5
-echo "Adding container to macvlan network"
-incus config device add $CONTAINER_NAME eth0 nic network=homebr0
+echo "Port forwarding from the host server"
+incus config device add $CONTAINER_NAME jfin proxy listen=tcp:0.0.0.0:8096 connect=tcp:127.0.0.1:8096
 
 # Configure snapshots
 incus config set $CONTAINER_NAME snapshots.schedule "0 7 * * *" # Daily at 7 AM
