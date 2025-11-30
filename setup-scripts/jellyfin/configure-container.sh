@@ -14,6 +14,9 @@ apt install -y \
     lsb-release \
     libicu76
 
+echo "Installing Tailscale..."
+/opt/setup/install-tailscale.sh
+
 echo "Installing Jellyfin..."
 # Add Jellyfin repository with proper keyring isolation
 curl -fsSL https://repo.jellyfin.org/jellyfin_team.gpg.key | gpg --dearmor -o /usr/share/keyrings/jellyfin-archive-keyring.gpg
