@@ -8,7 +8,11 @@ systemctl stop incus.service incus.socket
 source /root/source-restic-env.sh
 
 # Paths to backup
-BACKUP_PATHS="/var/lib/incus /etc/subuid /etc/subgid"
+BACKUP_PATHS=(
+  "/var/lib/incus"
+  "/etc/subuid"
+  "/etc/subgid"
+)
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 HOSTNAME=$(hostname)
@@ -16,7 +20,7 @@ HOSTNAME=$(hostname)
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting restic backup..."
 
 # Create backup
-restic backup "$BACKUP_PATHS" \
+restic backup "${BACKUP_PATHS[@]}" \
     --tag "auto-backup" \
     --tag "$TIMESTAMP" \
     --host "$HOSTNAME" \
