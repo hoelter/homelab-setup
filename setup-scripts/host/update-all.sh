@@ -24,3 +24,8 @@ incus exec torrent -- sh -c "apt update && apt full-upgrade -y"
 echo "Starting host updates..."
 sudo apt update && sudo apt full-upgrade -y
 
+# To rollback run commands like:
+# incus stop paperless
+# incus snapshot list paperless
+# incus snapshot restore paperless updateall-2026-01-06-2325
+# incus start paperless

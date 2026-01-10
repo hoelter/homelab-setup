@@ -28,4 +28,7 @@ echo "Updating packages again..."
 apt update
 
 echo "Installing docker..."
-apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+# Specific containerd version to avoid newer bug with incus
+apt install -y containerd.io=1.7.28-1~debian.13~trixie
+apt-mark hold containerd.io
+apt install -y docker-ce docker-ce-cli docker-buildx-plugin docker-compose-plugin

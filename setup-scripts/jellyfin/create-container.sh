@@ -25,6 +25,11 @@ echo "Mounting shared media directory via bind mount..."
 incus config device add $CONTAINER_NAME media-disk disk \
     source=/mnt/extension-drive/torrents path=/media readonly=true
 
+# Mount the organized media library (from Radarr/Sonarr)
+echo "Mounting organized media library..."
+incus config device add $CONTAINER_NAME media-library disk \
+    source=/mnt/extension-drive/media path=/library readonly=true
+
 echo "Mount /tmp as transcode directory so they're stored in ram, in jellfyin admin set transcode path to /tmp/jellyfin-transcodes"
 incus config device add $CONTAINER_NAME transcoding-tmpfs disk \
     source=/tmp path=/tmp/jellyfin-transcodes
