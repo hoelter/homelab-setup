@@ -6,6 +6,7 @@ echo "Starting arr container configuration..."
 timedatectl set-timezone America/Chicago
 
 apt update && apt full-upgrade -y
+# mkvtoolnix install if needed for editing file metadata
 
 echo "Installing Docker..."
 /opt/setup/install-docker.sh
