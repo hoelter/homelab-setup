@@ -21,6 +21,9 @@ incus exec jellyfin -- sh -c "apt update && apt full-upgrade -y"
 incus snapshot create torrent "updateall-$TIMESTAMP"
 incus exec torrent -- sh -c "apt update && apt full-upgrade -y"
 
+incus snapshot create arr "updateall-$TIMESTAMP"
+incus exec arr -- sh -c "apt update && apt full-upgrade -y"
+
 echo "Starting host updates..."
 sudo apt update && sudo apt full-upgrade -y
 
