@@ -3,9 +3,13 @@
 set -e
 
 systemctl stop incus.service incus.socket
+trap 'systemctl start incus.socket incus.service' EXIT
 
 # shellcheck source=/dev/null
 source /root/source-restic-env.sh
+
+# Clear any stale locks left over from a prior interrupted run
+restic unlock
 
 # Paths to backup
 BACKUP_PATHS=(
@@ -34,7 +38,5 @@ restic forget \
     --keep-daily 7 \
     --keep-weekly 4 \
     --keep-monthly 12
-
-sudo systemctl start incus.socket incus.service
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - restic backup completed"
