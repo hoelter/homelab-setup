@@ -14,6 +14,7 @@ incus exec nas -- sh -c "apt update && apt full-upgrade -y"
 
 incus snapshot create paperless "updateall-$TIMESTAMP"
 incus exec paperless -- sh -c "apt update && apt full-upgrade -y"
+incus exec paperless -- su - paperlessuser -c 'cd /home/paperlessuser && docker compose pull && docker compose up -d'
 
 incus snapshot create jellyfin "updateall-$TIMESTAMP"
 incus exec jellyfin -- sh -c "apt update && apt full-upgrade -y"
@@ -23,6 +24,7 @@ incus exec torrent -- sh -c "apt update && apt full-upgrade -y"
 
 incus snapshot create arr "updateall-$TIMESTAMP"
 incus exec arr -- sh -c "apt update && apt full-upgrade -y"
+incus exec arr -- su - arruser -c 'cd /home/arruser && docker compose pull && docker compose up -d'
 
 echo "Starting host updates..."
 sudo apt update && sudo apt full-upgrade -y
