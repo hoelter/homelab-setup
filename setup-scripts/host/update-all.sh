@@ -5,6 +5,9 @@ set -e
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 TIMESTAMP=$(date +"%Y-%m-%d-%H%M")
 
+echo "Starting host updates..."
+sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y
+
 echo "Starting container udpates..."
 
 incus snapshot create git "updateall-$TIMESTAMP"
@@ -28,9 +31,6 @@ incus snapshot create arr "updateall-$TIMESTAMP"
 incus exec arr -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"
 incus file push "$SCRIPT_DIR/../arr/docker-compose.yaml" arr/home/arruser/docker-compose.yaml --uid 1000 --gid 1000
 incus exec arr -- su - arruser -c 'cd /home/arruser && docker compose pull && docker compose up -d'
-
-echo "Starting host updates..."
-sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y
 
 # To rollback run commands like:
 # incus stop paperless
