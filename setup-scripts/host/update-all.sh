@@ -19,7 +19,7 @@ incus exec nas -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"
 incus snapshot create paperless "updateall-$TIMESTAMP"
 incus exec paperless -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"
 incus file push "$SCRIPT_DIR/../paperless/docker-compose.yaml" paperless/home/paperlessuser/docker-compose.yaml --uid 1000 --gid 1000
-incus exec paperless -- su - paperlessuser -c 'cd /home/paperlessuser && docker compose pull && docker compose up -d'
+incus exec paperless -- su - paperlessuser -c 'cd /home/paperlessuser && docker compose pull && docker compose up -d && docker image prune -af'
 
 incus snapshot create jellyfin "updateall-$TIMESTAMP"
 incus exec jellyfin -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"
@@ -30,7 +30,7 @@ incus exec torrent -- sh -c "apt update && apt full-upgrade -y && apt autoremove
 incus snapshot create arr "updateall-$TIMESTAMP"
 incus exec arr -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"
 incus file push "$SCRIPT_DIR/../arr/docker-compose.yaml" arr/home/arruser/docker-compose.yaml --uid 1000 --gid 1000
-incus exec arr -- su - arruser -c 'cd /home/arruser && docker compose pull && docker compose up -d'
+incus exec arr -- su - arruser -c 'cd /home/arruser && docker compose pull && docker compose up -d && docker image prune -af'
 
 # To rollback run commands like:
 # incus stop paperless
