@@ -35,10 +35,13 @@ cp /opt/setup/docker-compose.yaml /home/paperlessuser/
 chown paperlessuser:paperlessuser /home/paperlessuser/docker-compose.yaml
 
 echo "Creating environment file..."
+PAPERLESS_SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(64))")
 cat > /home/paperlessuser/.env << EOF
 PAPERLESS_URL=$PAPERLESS_URL
+PAPERLESS_SECRET_KEY=$PAPERLESS_SECRET_KEY
 EOF
 chown paperlessuser:paperlessuser /home/paperlessuser/.env
+chmod 600 /home/paperlessuser/.env
 
 echo "Cleaning up setup files..."
 rm -rf /opt/setup
