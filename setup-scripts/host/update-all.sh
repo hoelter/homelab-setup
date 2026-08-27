@@ -26,6 +26,8 @@ incus exec jellyfin -- sh -c "apt update && apt full-upgrade -y && apt autoremov
 
 incus snapshot create torrent "updateall-$TIMESTAMP"
 incus exec torrent -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"
+incus file push "$SCRIPT_DIR/../torrent/docker-compose.yaml" torrent/home/torrentuser/docker-compose.yaml --uid 1000 --gid 1000
+incus exec torrent -- su - torrentuser -c 'cd /home/torrentuser && docker compose pull && docker compose up -d && docker image prune -af'
 
 incus snapshot create arr "updateall-$TIMESTAMP"
 incus exec arr -- sh -c "apt update && apt full-upgrade -y && apt autoremove -y"

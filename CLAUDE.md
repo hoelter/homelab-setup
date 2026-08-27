@@ -31,7 +31,7 @@ Each service follows a consistent pattern:
 - `./setup-host-test-env.sh` - Create test VM environment for development (uses "real-incus-host" alias)
 - `setup-scripts/host/setup-fresh-containers.sh` - Deploy all service containers (git, paperless, nas, torrent, arr, jellyfin)
 - `setup-scripts/host/configure.sh` - Initial host setup (installs incus, restic, configures environment)
-- `setup-scripts/host/update-all.sh` - Snapshot and update everything: snapshots each container, runs `apt full-upgrade` in all containers, syncs the repo `docker-compose.yaml` into the paperless and arr containers (from the deployed `/home/chris/setup-scripts/` copy, so run `deploy-host-setup.sh` first to apply compose edits) then pulls/recreates their Docker images, then upgrades the host. Rollback via the `updateall-<timestamp>` snapshots.
+- `setup-scripts/host/update-all.sh` - Snapshot and update everything: snapshots each container, runs `apt full-upgrade` in all containers, syncs the repo `docker-compose.yaml` into the paperless, torrent, and arr containers (from the deployed `/home/chris/setup-scripts/` copy, so run `deploy-host-setup.sh` first to apply compose edits) then pulls/recreates their Docker images, then upgrades the host. Rollback via the `updateall-<timestamp>` snapshots.
 
 ### Service Management
 - `incus list` - View all containers and their status
