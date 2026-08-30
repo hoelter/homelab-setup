@@ -80,27 +80,20 @@ services:
       sh -c '
       apk add --no-cache curl
       echo "Starting qBittorrent port manager"
-      while ! curl -s -c /tmp/cookies -d "username=admin&password=adminadmin" http://localhost:8080/api/v2/auth/login | grep -q "Ok."; do
-          echo "Authentication failed, retrying in 30s..."
-          sleep 30
-      done
-      echo "Authenticated with qBittorrent"
-      
+      # qBittorrent has WebUI\LocalHostAuth=false, so requests from this shared
+      # network namespace (localhost) bypass authentication. No login needed.
       while true; do
           if [ -f "$$PORT_FORWARDED_FILE" ]; then
               new_port=$$(cat "$$PORT_FORWARDED_FILE" | tr -d "\n\r" | grep -o "[0-9]*")
               if [ -n "$$new_port" ] && [ "$$new_port" -gt 0 ]; then
-                  current_port=$$(curl -s -b /tmp/cookies http://localhost:8080/api/v2/app/preferences | grep -o "\"listen_port\":[0-9]*" | cut -d: -f2)
+                  current_port=$$(curl -s http://localhost:8080/api/v2/app/preferences | grep -o "\"listen_port\":[0-9]*" | cut -d: -f2)
                   if [ "$$current_port" != "$$new_port" ]; then
                       echo "Updating port: $$current_port -> $$new_port"
-                      curl -s -b /tmp/cookies -d "json={\"listen_port\":$$new_port}" http://localhost:8080/api/v2/app/setPreferences
+                      curl -s -d "json={\"listen_port\":$$new_port}" http://localhost:8080/api/v2/app/setPreferences
                   fi
               fi
           fi
           sleep "$$RECHECK_TIME"
-          curl -s -b /tmp/cookies http://localhost:8080/api/v2/auth/login >/dev/null 2>&1 || {
-              curl -s -c /tmp/cookies -d "username=admin&password=adminadmin" http://localhost:8080/api/v2/auth/login >/dev/null 2>&1
-          }
       done
       '
     healthcheck:
