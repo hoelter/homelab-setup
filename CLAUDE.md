@@ -151,6 +151,7 @@ incus exec arr -- sqlite3 /home/arruser/config/sonarr/sonarr.db "SELECT Path FRO
 - **Jellyfin-Arr**: Jellyfin container mounts `/mnt/extension-drive/media` as read-only `/library`
 - **Shared Storage**: Media files downloaded by torrent container are organized by Radarr/Sonarr and available to Jellyfin
 - **Security**: Jellyfin has read-only access to prevent accidental modification of media files
+- **Measure active stream bitrate**: traffic rides loopback (fronted by `tailscale serve`), so sample `lo`, not eth0/tailscale0: `incus exec jellyfin -- bash -c 't1=$(cat /sys/class/net/lo/statistics/tx_bytes); sleep 10; t2=$(cat /sys/class/net/lo/statistics/tx_bytes); echo $(( (t2-t1)*8/10000 )) kbps'`. A running `ffmpeg` process = transcoding; none = direct play.
 
 ### Backup Strategy
 - Restic used for encrypted remote backups to S3-compatible storage
